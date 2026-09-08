@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, deleteData, deleteWhere } from '../firebaseData';
+import Footer from '../components/Footer'
+import { useToast } from '../components/Toast'
+import { fetchWhere, deleteData, deleteWhere, putData, updateData } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
 
 const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort().join("__");
@@ -9,14 +11,18 @@ const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort
 function RequestMgmtPage() {
     const [outgoingData, setOutgoingData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [rateTarget, setRateTarget] = useState(null);
+    const [starRating, setStarRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [savingRating, setSavingRating] = useState(false);
     const { getUsername } = useContext(AccountContext);
+    const { showToast } = useToast();
     const username = getUsername();
 
     const fetchRequests = async () => {
         setLoading(true);
-        const data = await fetchData('requests');
-        const filteredData = data.filter(item => item.username === username);
-        setOutgoingData(filteredData);
+        const data = await fetchWhere('requests', 'username', username);
+        setOutgoingData(data);
         setLoading(false);
     };
 
@@ -25,8 +31,10 @@ function RequestMgmtPage() {
             await deleteData('requests', item.id);
             await deleteWhere('chats', 'chatId', chatIdFor(item));
             fetchRequests();
+            showToast("Request deleted.");
         } catch (error) {
             console.log('Error deleting record:', error);
+            showToast("Could not delete the request.", "error");
         }
     };
 
@@ -45,6 +53,38 @@ function RequestMgmtPage() {
 
     const toCheckout = (item) => {
         navigate('/checkout', { state: { item } });
+    }
+
+    const openRateModal = (item) => {
+        setRateTarget(item);
+        setStarRating(5);
+        setReviewComment("");
+    }
+
+    const saveRating = async () => {
+        if (!rateTarget) return;
+        setSavingRating(true);
+        try {
+            await putData('ratings', {
+                providerId: rateTarget.providerId,
+                providerName: rateTarget.requested,
+                requesterId: rateTarget.requesterId,
+                requesterName: rateTarget.username,
+                requestId: rateTarget.id,
+                rating: starRating,
+                comment: reviewComment.trim(),
+                timestamp: new Date(),
+            });
+            await updateData('requests', rateTarget.id, { rated: true });
+            setRateTarget(null);
+            fetchRequests();
+            window.$('#rateModal').modal('hide');
+            showToast("Thanks! Your review was submitted.");
+        } catch (error) {
+            console.log('Error saving rating:', error);
+            showToast("Could not submit your review.", "error");
+        }
+        setSavingRating(false);
     }
 
     return (
@@ -103,16 +143,24 @@ function RequestMgmtPage() {
                                                 </span>
                                             </td>
                                             <td>
-                                                <div className="d-flex align-items-center">
-                                                    <button onClick={() => { toChat(item.requested) }} className="btn secondary-button mr-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                <div className="d-flex align-items-center flex-wrap">
+                                                    <button onClick={() => { toChat(item.requested) }} className="btn secondary-button mr-2 mb-1" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
                                                         Message
                                                     </button>
                                                     {(item.accepted === "accepted" || item.accepted === "completed") && (
-                                                        <button onClick={() => toCheckout(item)} className="btn primary-button mr-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                        <button onClick={() => toCheckout(item)} className="btn primary-button mr-2 mb-1" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
                                                             Pay
                                                         </button>
                                                     )}
-                                                    <button onClick={() => handleDelete(item)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.6rem' }}>
+                                                    {item.accepted === "completed" && !item.rated && (
+                                                        <button onClick={() => openRateModal(item)} className="btn secondary-button mr-2 mb-1" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                            Rate
+                                                        </button>
+                                                    )}
+                                                    {item.accepted === "completed" && item.rated && (
+                                                        <span className="mr-2 mb-1" style={{ fontSize: '0.82rem', color: 'var(--text-light)' }}>Rated</span>
+                                                    )}
+                                                    <button onClick={() => handleDelete(item)} className="btn btn-outline-danger mb-1" style={{ fontSize: '0.82rem', padding: '0.35rem 0.6rem' }}>
                                                         Delete
                                                     </button>
                                                 </div>
@@ -125,6 +173,56 @@ function RequestMgmtPage() {
                     </div>
                 )}
             </div>
+
+            <div className="modal fade" id="rateModal" tabIndex="-1" role="dialog" aria-labelledby="rateModalLabel" aria-hidden="true">
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title" id="rateModalLabel" style={{ fontWeight: 600, fontSize: '1.05rem' }}>
+                                Rate {rateTarget ? rateTarget.requested : ""}
+                            </h5>
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div className="modal-body p-4">
+                            <label style={{ fontWeight: 600 }}>Your rating</label>
+                            <div className="rate-stars mb-3">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        className={`rate-star ${star <= starRating ? "filled" : ""}`}
+                                        onClick={() => setStarRating(star)}
+                                        aria-label={`${star} star${star === 1 ? "" : "s"}`}
+                                    >
+                                        ★
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="form-group">
+                                <label>Comment (optional)</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="3"
+                                    maxLength="300"
+                                    placeholder="How was your experience?"
+                                    value={reviewComment}
+                                    onChange={(event) => setReviewComment(event.target.value)}
+                                    style={{ resize: 'vertical' }}
+                                />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn secondary-button" data-dismiss="modal">Cancel</button>
+                            <button onClick={saveRating} type="button" className="btn primary-button" disabled={savingRating}>
+                                {savingRating ? "Submitting..." : "Submit Review"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <Footer />
         </>
     )
 }

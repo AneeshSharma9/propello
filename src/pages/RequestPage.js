@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import { useLocation, useNavigate } from 'react-router-dom';
 import { putData } from '../firebaseData';
 
@@ -103,6 +104,7 @@ function RequestPage() {
                     </form>
                 </div>
             </div>
+            <Footer />
         </>
     )
 }

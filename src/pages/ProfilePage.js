@@ -1,7 +1,8 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { putData, fetchData, updateData, deleteData } from '../firebaseData';
+import Footer from '../components/Footer'
+import { putData, fetchWhere, updateData, deleteData } from '../firebaseData';
 import Select from "react-select";
 import { useNavigate } from 'react-router-dom';
 
@@ -30,6 +31,7 @@ function ProfilePage() {
 
     const [listings, setListings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [ratings, setRatings] = useState([]);
 
     const [displayName, setDisplayName] = useState(profile?.name || "");
     const [phone, setPhone] = useState(profile?.phone || "");
@@ -39,8 +41,10 @@ function ProfilePage() {
 
     const fetchListings = async () => {
         if (!user?.uid) return;
-        const data = await fetchData('services');
-        setListings(data.filter(item => item.userId === user.uid));
+        const data = await fetchWhere('services', 'userId', user.uid);
+        setListings(data);
+        const ratingData = await fetchWhere('ratings', 'providerId', user.uid);
+        setRatings(ratingData);
         setLoading(false);
     };
 
@@ -134,15 +138,29 @@ function ProfilePage() {
         setSavingSettings(false);
     };
 
+    const ratingSummary = ratings.length
+        ? (ratings.reduce((sum, r) => sum + Number(r.rating), 0) / ratings.length)
+        : null;
+
     return (
         <>
             <Navbar />
             <div className="offset"></div>
             <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: '640px' }}>
                 <h1 className="customh1 mb-2">Welcome {fullName}!</h1>
-                <p style={{ color: 'var(--text-light)', marginBottom: '2rem', fontSize: '0.95rem' }}>
+                <p style={{ color: 'var(--text-light)', marginBottom: '0.5rem', fontSize: '0.95rem' }}>
                     Manage your profile, service listings, and preferences.
                 </p>
+                {ratingSummary != null && (
+                    <p className="mb-4" style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>
+                        <span className="stars" aria-label={`${ratingSummary.toFixed(1)} out of 5 stars`}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={star <= Math.round(ratingSummary) ? "star filled" : "star"}>★</span>
+                            ))}
+                        </span>
+                        <span className="ml-2">{ratingSummary.toFixed(1)} average from {ratings.length} review{ratings.length === 1 ? "" : "s"}</span>
+                    </p>
+                )}
 
                 {/* Offer / Edit a Service */}
                 <div style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', padding: '2rem', border: '1px solid var(--border)', marginBottom: '2rem' }}>
@@ -304,6 +322,7 @@ function ProfilePage() {
                     </form>
                 </div>
             </div>
+            <Footer />
         </>
     )
 }

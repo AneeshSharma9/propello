@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import { AccountContext } from "../components/Account";
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import { putData, subscribeWhere } from '../firebaseData';
 
 const toDisplayTime = (timestamp) => {
@@ -70,11 +71,12 @@ function ChatPage() {
                 <Navbar />
                 <div className="offset"></div>
                 <div className="container" style={{ paddingTop: '1.5rem' }}>
-                    <div className="text-center py-5" style={{ color: 'var(--text-light)' }}>
-                        <p>No conversation selected.</p>
-                        <a className="btn primary-button" href="/explore">Browse Services</a>
+                        <div className="text-center py-5" style={{ color: 'var(--text-light)' }}>
+                            <p>No conversation selected.</p>
+                            <a className="btn primary-button" href="/explore">Browse Services</a>
+                        </div>
                     </div>
-                </div>
+                <Footer />
             </>
         );
     }
@@ -138,6 +140,7 @@ function ChatPage() {
                     </form>
                 </div>
             </div>
+            <Footer />
         </>
     );
 }

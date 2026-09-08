@@ -16,6 +16,12 @@ export const fetchData = async (collectionName) => {
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
 
+export const fetchWhere = async (collectionName, field, value) => {
+  const q = query(collection(db, collectionName), where(field, "==", value));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
 export const putData = async (collectionName, data) => {
   return addDoc(collection(db, collectionName), data);
 };

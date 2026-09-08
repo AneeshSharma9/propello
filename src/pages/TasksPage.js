@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, updateData, deleteWhere } from '../firebaseData';
+import Footer from '../components/Footer'
+import { useToast } from '../components/Toast'
+import { fetchWhere, updateData, deleteWhere } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
 
 const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort().join("__");
@@ -12,13 +14,13 @@ function TasksPage() {
     const [link, setLink] = useState("");
     const [linkTarget, setLinkTarget] = useState(null);
     const { getUsername } = useContext(AccountContext);
+    const { showToast } = useToast();
     const username = getUsername();
 
     const fetchTasks = async () => {
         setLoading(true);
-        const data = await fetchData('requests');
-        const filteredData = data.filter(item => item.requested === username);
-        setTableData(filteredData);
+        const data = await fetchWhere('requests', 'requested', username);
+        setTableData(data);
         setLoading(false);
     };
 
@@ -62,7 +64,7 @@ function TasksPage() {
     const saveLink = async () => {
         if (!linkTarget) return;
         if (!link.includes("https://github.com")) {
-            alert("Please enter a valid GitHub repository URL (must include https://github.com).");
+            showToast("Please enter a valid GitHub URL (must include https://github.com).", "error");
             return;
         }
         try {
@@ -72,9 +74,10 @@ function TasksPage() {
             setLink("");
             fetchTasks();
             window.$('#githubModal').modal('hide');
+            showToast("Submitted — task marked complete.");
         } catch (error) {
             console.log('Error saving link:', error);
-            alert("Could not save your link. Please try again.");
+            showToast("Could not save your link. Please try again.", "error");
         }
     }
 
@@ -198,6 +201,7 @@ function TasksPage() {
                     </>
                 )}
             </div>
+            <Footer />
         </>
     )
 }

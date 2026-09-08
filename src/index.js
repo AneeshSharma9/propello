@@ -18,6 +18,8 @@ import TasksPage from './pages/TasksPage';
 import Checkout from './components/Checkout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Account } from './components/Account';
+import { ToastProvider } from './components/Toast';
+import NotFoundPage from './pages/NotFoundPage';
 
 const router = createBrowserRouter([
   {
@@ -60,12 +62,18 @@ const router = createBrowserRouter([
     path: "checkout",
     element: <ProtectedRoute><Checkout /></ProtectedRoute>,
   },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <Account>
-    <RouterProvider router={router} />
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
   </Account>
 );
 
