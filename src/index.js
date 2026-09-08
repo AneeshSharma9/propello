@@ -16,6 +16,7 @@ import RequestMgmtPage from './pages/RequestMgmtPage';
 import ChatPage from './pages/ChatPage';
 import TasksPage from './pages/TasksPage';
 import Checkout from './components/Checkout';
+import ProtectedRoute from './components/ProtectedRoute';
 import { Account } from './components/Account';
 
 const router = createBrowserRouter([
@@ -37,27 +38,27 @@ const router = createBrowserRouter([
   },
   {
     path: "profile",
-    element: <ProfilePage />,
+    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
   },
   {
     path: "request",
-    element: <RequestPage />,
+    element: <ProtectedRoute><RequestPage /></ProtectedRoute>,
   },
   {
     path: "requestmgmt",
-    element: <RequestMgmtPage />,
+    element: <ProtectedRoute><RequestMgmtPage /></ProtectedRoute>,
   },
   {
     path: "chat",
-    element: <ChatPage />,
+    element: <ProtectedRoute><ChatPage /></ProtectedRoute>,
   },
   {
     path: "tasks",
-    element: <TasksPage />,
+    element: <ProtectedRoute><TasksPage /></ProtectedRoute>,
   },
   {
     path: "checkout",
-    element: <Checkout />,
+    element: <ProtectedRoute><Checkout /></ProtectedRoute>,
   },
 ]);
 

@@ -17,6 +17,7 @@ const AccountContext = createContext();
 const Account = (props) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -36,6 +37,7 @@ const Account = (props) => {
         setUser(null);
         setProfile(null);
       }
+      setInitializing(false);
     });
     return unsubscribe;
   }, []);
@@ -70,7 +72,7 @@ const Account = (props) => {
   };
 
   const signUp = async (email, password, profileData) => {
-    const { username, firstName, lastName, phone } = profileData;
+    const { username, firstName, lastName, phone, bio } = profileData;
     const credential = await createUserWithEmailAndPassword(auth, email, password);
     try {
       const exists = await doesUsernameExist(username);
@@ -79,7 +81,7 @@ const Account = (props) => {
       }
       const name = `${firstName} ${lastName}`.trim();
       await updateProfile(credential.user, { displayName: name });
-      const data = { username, name, email, phone };
+      const data = { username, name, email, phone, bio: bio || "" };
       await setDoc(doc(db, "users", credential.user.uid), data);
       setProfile(data);
     } catch (err) {
@@ -100,9 +102,21 @@ const Account = (props) => {
     return "";
   };
 
+  const refreshProfile = async () => {
+    if (!user) return;
+    try {
+      const profileDoc = await getDoc(doc(db, "users", user.uid));
+      if (profileDoc.exists()) {
+        setProfile(profileDoc.data());
+      }
+    } catch (err) {
+      console.error("Failed to refresh profile:", err);
+    }
+  };
+
   return (
     <AccountContext.Provider
-      value={{ user, profile, signIn, signInWithGoogle, signUp, logOut, getUsername }}
+      value={{ user, profile, initializing, signIn, signInWithGoogle, signUp, logOut, getUsername, refreshProfile }}
     >
       {props.children}
     </AccountContext.Provider>

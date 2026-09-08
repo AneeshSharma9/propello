@@ -11,9 +11,11 @@ function ExplorePage() {
     const [searchWord, setSearchWord] = useState("");
     const [outgoingData, setOutgoingData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState(true);
     const cardsPerPage = 15;
 
     const fetchDataFromFirestore = async () => {
+        setLoading(true);
         const data = await fetchData('services');
         setCardsData(data);
         const lowerSearchWord = searchWord.toLowerCase();
@@ -22,6 +24,7 @@ function ExplorePage() {
             : data;
         setOutgoingData(filteredData);
         setCurrentPage(1);
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -79,16 +82,40 @@ function ExplorePage() {
                 </div>
 
                 <div className="d-flex flex-wrap justify-content-start">
-                    {currentCards.map((card) => (
-                        <div className="customcard card mr-3 mb-3" style={{ width: '21rem' }} key={card.id}>
+                    {loading ? (
+                        <div className="text-center w-100 py-5" style={{ color: 'var(--text-light)' }}>
+                            <div className="spinner-border text-secondary" role="status" style={{ width: '2.5rem', height: '2.5rem' }}>
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                            <p className="mt-3" style={{ fontSize: '0.95rem' }}>Loading services...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {currentCards.map((card) => (
+                        <div className="customcard card mr-3 mb-3 fade-in-up" style={{ width: '21rem' }} key={card.id}>
                             <div className="card-body" style={{ padding: '1.25rem' }}>
-                                <h5 className="card-title mb-1" style={{ fontSize: '1.05rem' }}>{card.name}</h5>
+                                <div className="d-flex align-items-start justify-content-between">
+                                    <h5 className="card-title mb-1" style={{ fontSize: '1.05rem' }}>{card.name}</h5>
+                                    {card.price != null && (
+                                        <span className="badge" style={{ backgroundColor: 'var(--secondary)', color: 'var(--primary)', fontSize: '0.85rem', padding: '0.45em 0.75em' }}>
+                                            ${card.price}
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="mb-2" style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                     {card.service}
                                 </p>
                                 <p className="card-text" style={{ fontSize: '0.88rem', color: 'var(--text-light)', lineHeight: 1.5 }}>
                                     {(card.description || "").length > 60 ? `${card.description.substring(0, 60)}...` : card.description}
                                 </p>
+                                <div className="d-flex align-items-center justify-content-between mb-2">
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                                        {card.deliveryTime != null && (
+                                            <span>Delivery: {card.deliveryTime} day{card.deliveryTime === 1 ? "" : "s"}</span>
+                                        )}
+                                        {card.availability ? `  ·  ${card.availability}` : ""}
+                                    </div>
+                                </div>
                                 <button onClick={() => { toComponentB(card) }} className="primary-button btn" style={{ fontSize: '0.85rem', padding: '0.4rem 1.2rem' }}>
                                     Request
                                 </button>
@@ -100,9 +127,11 @@ function ExplorePage() {
                             <p style={{ fontSize: '1rem' }}>No services found.</p>
                         </div>
                     )}
+                        </>
+                    )}
                 </div>
 
-                {pageNumbers.length > 1 && (
+                {!loading && pageNumbers.length > 1 && (
                     <nav aria-label="Page navigation" className="pt-4">
                         <ul className="pagination justify-content-center">
                             {pageNumbers.map((number) => (

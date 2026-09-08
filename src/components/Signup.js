@@ -8,6 +8,7 @@ const Signup = () => {
     const [phonenum, setPhoneNum] = useState("");
     const [firstname, setFirstName] = useState("");
     const [lastname, setLastName] = useState("");
+    const [bio, setBio] = useState("");
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -16,7 +17,7 @@ const Signup = () => {
     const onSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
-        signUp(email, password, { username, firstName: firstname, lastName: lastname, phone: phonenum })
+        signUp(email, password, { username, firstName: firstname, lastName: lastname, phone: phonenum, bio })
             .then(() => {
                 window.location.href = "/";
             })
@@ -116,6 +117,19 @@ const Signup = () => {
                                                 placeholder="Create a password"
                                                 value={password}
                                                 onChange={(event) => setPassword(event.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label style={{ fontSize: '0.85rem' }}>About you (optional)</label>
+                                            <textarea
+                                                rows="3"
+                                                className="form-control"
+                                                placeholder="Tell others about your skills and experience..."
+                                                value={bio}
+                                                maxLength="300"
+                                                onChange={(event) => setBio(event.target.value)}
+                                                style={{ resize: 'vertical' }}
                                             />
                                         </div>
 
