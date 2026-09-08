@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, updateData } from '../firebaseData';
+import { fetchData, updateData, deleteWhere } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
+
+const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort().join("__");
 
 function TasksPage() {
     const [tableData, setTableData] = useState([]);
@@ -29,9 +31,10 @@ function TasksPage() {
         }
     };
 
-    const handleReject = async (documentId) => {
+    const handleReject = async (item) => {
         try {
-            await updateData('requests', documentId, { accepted: "rejected" });
+            await updateData('requests', item.id, { accepted: "rejected" });
+            await deleteWhere('chats', 'chatId', chatIdFor(item));
             fetchTasks();
         } catch (error) {
             console.log('Error updating record:', error);
@@ -52,7 +55,7 @@ function TasksPage() {
     }
 
     const openLinkModal = (item) => {
-        setLinkTarget(item.id);
+        setLinkTarget(item);
         setLink(item.githubLink || "");
     }
 
@@ -63,7 +66,8 @@ function TasksPage() {
             return;
         }
         try {
-            await updateData('requests', linkTarget, { githubLink: link, accepted: "completed" });
+            await updateData('requests', linkTarget.id, { githubLink: link, accepted: "completed" });
+            await deleteWhere('chats', 'chatId', chatIdFor(linkTarget));
             setLinkTarget(null);
             setLink("");
             fetchTasks();
@@ -127,7 +131,7 @@ function TasksPage() {
                                                             <button onClick={() => handleAccept(item.id)} className="btn primary-button mr-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
                                                                 Accept
                                                             </button>
-                                                            <button onClick={() => handleReject(item.id)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                            <button onClick={() => handleReject(item)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
                                                                 Reject
                                                             </button>
                                                         </div>

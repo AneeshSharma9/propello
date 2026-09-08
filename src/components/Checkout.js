@@ -11,7 +11,6 @@ const Checkout = () => {
 
     const [success, setSuccess] = useState(false);
     const [ErrorMessage, setErrorMessage] = useState("");
-    const [orderID, setOrderID] = useState(false);
 
     const createOrder = (data, actions) => {
         return actions.order.create({
@@ -24,9 +23,6 @@ const Checkout = () => {
                     },
                 },
             ],
-        }).then((orderID) => {
-            setOrderID(orderID);
-            return orderID;
         });
     };
 
@@ -83,10 +79,16 @@ const Checkout = () => {
                             </div>
 
                             <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                                {ErrorMessage && (
+                                    <div className="alert alert-danger py-2 mb-3" role="alert" style={{ fontSize: '0.85rem', borderRadius: 'var(--radius)' }}>
+                                        {ErrorMessage}
+                                    </div>
+                                )}
                                 <PayPalButtons
                                     style={{ layout: "vertical", disableMaxWidth: true, color: "blue", shape: "rect", height: 45 }}
                                     createOrder={createOrder}
                                     onApprove={onApprove}
+                                    onError={onError}
                                 />
                             </div>
                         </div>

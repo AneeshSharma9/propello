@@ -12,8 +12,6 @@
     "bootstrap": "^5.3.1",
     "firebase": "^12.18.0",
     "jquery": "^3.7.0",
-    "mirrorfly-sdk": "^4.17.0",
-    "mirrorfly-uikit": "^4.0.14",
     "popper.js": "^1.16.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

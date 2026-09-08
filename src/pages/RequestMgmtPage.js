@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, deleteData } from '../firebaseData';
+import { fetchData, deleteData, deleteWhere } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
+
+const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort().join("__");
 
 function RequestMgmtPage() {
     const [outgoingData, setOutgoingData] = useState([]);
@@ -18,9 +20,10 @@ function RequestMgmtPage() {
         setLoading(false);
     };
 
-    const handleDelete = async (documentId) => {
+    const handleDelete = async (item) => {
         try {
-            await deleteData('requests', documentId);
+            await deleteData('requests', item.id);
+            await deleteWhere('chats', 'chatId', chatIdFor(item));
             fetchRequests();
         } catch (error) {
             console.log('Error deleting record:', error);
@@ -109,7 +112,7 @@ function RequestMgmtPage() {
                                                             Pay
                                                         </button>
                                                     )}
-                                                    <button onClick={() => handleDelete(item.id)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.6rem' }}>
+                                                    <button onClick={() => handleDelete(item)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.6rem' }}>
                                                         Delete
                                                     </button>
                                                 </div>

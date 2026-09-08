@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Users can read and update their own profile
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Service listings are publicly browseable; only signed-in users create/edit/delete
+    match /services/{listing} {
+      allow read: if true;
+      allow create, update, delete: if signedIn();
+    }
+
+    // Requests are managed by signed-in users
+    match /requests/{requestId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    // Chat messages: only signed-in users may talk
+    match /chats/{message} {
+      allow read, create: if signedIn() && request.auth.uid != null;
+      allow delete: if signedIn();
+    }
+  }
+}

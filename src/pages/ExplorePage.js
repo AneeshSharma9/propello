@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 function ExplorePage() {
     const { user } = useContext(AccountContext);
 
-    const [cardsData, setCardsData] = useState([]);
     const [searchWord, setSearchWord] = useState("");
     const [outgoingData, setOutgoingData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +16,6 @@ function ExplorePage() {
     const fetchDataFromFirestore = async () => {
         setLoading(true);
         const data = await fetchData('services');
-        setCardsData(data);
         const lowerSearchWord = searchWord.toLowerCase();
         const filteredData = searchWord !== ""
             ? data.filter(item => (item.service || "").toLowerCase().includes(lowerSearchWord))
