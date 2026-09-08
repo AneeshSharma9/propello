@@ -1,41 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { Account } from '../components/Account'
+import React, { useEffect, useState, useContext } from 'react';
+import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, deleteData } from '../AwsFunctions';
-import Pool from '../UserPool';
+import { fetchData, deleteData } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
-
 
 function RequestMgmtPage() {
     const [outgoingData, setOutgoingData] = useState([]);
-    const user = Pool.getCurrentUser().getUsername();
+    const { getUsername } = useContext(AccountContext);
+    const username = getUsername();
 
-    const fetchDataFromDynamoDb = async () => {
-        const data = await fetchData('outgoing-requests');
-        console.log(data.Items);
-        const filteredOutgoingData = data.Items.filter(item => item.username === user);
-        setOutgoingData(filteredOutgoingData);
+    const fetchRequests = async () => {
+        const data = await fetchData('requests');
+        const filteredData = data.filter(item => item.username === username);
+        setOutgoingData(filteredData);
     };
 
-    const handleDelete = async (username) => {
+    const handleDelete = async (documentId) => {
         try {
-            await deleteData('outgoing-requests', { username });
-            console.log(`Record with username ${username} deleted successfully`);
-            fetchDataFromDynamoDb();
+            await deleteData('requests', documentId);
+            fetchRequests();
         } catch (error) {
             console.log('Error deleting record:', error);
         }
     };
 
     useEffect(() => {
-        fetchDataFromDynamoDb();
+        if (username) {
+            fetchRequests();
+        }
         // eslint-disable-next-line
-    }, []);
+    }, [username]);
 
     const navigate = useNavigate();
 
-    const toComponentB = (username) => {
-        navigate('/chat', { state: { username } });
+    const toChat = (targetUser) => {
+        navigate('/chat', { state: { username: targetUser } });
     }
 
     const toCheckout = (item) => {
@@ -43,43 +42,71 @@ function RequestMgmtPage() {
     }
 
     return (
-        <Account>
+        <>
             <Navbar />
-            <div class="offset"></div>
-            <div class="container">
-                <h1 class="customh1">Your Requests</h1>
-                <table class="table">
-                    <thead class="table-bg">
-                        <tr>
-                            <th scope="col">Requested</th>
-                            <th scope="col">Service</th>
-                            <th scope="col">Directions</th>
-                            <th scope="col">End Date</th>
-                            <th scope="col">Accepted</th>
-                            <th scope="col">Chat</th>
-                            <th scope="col">Approve and Pay</th>
-                            <th scope="col">Delete</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {outgoingData.map((item, index) => (
-                            <tr key={index}>
-                                <td>{item.requested}</td>
-                                <td>{item.service}</td>
-                                <td>{item.directions}</td>
-                                <td>{item.endDate}</td>
-                                <td>{item.accepted}</td>
-                                <td>
-                                    <button onClick={() => { toComponentB(item.requested) }} className="secondary-button btn">Message</button>
-                                </td>
-                                <td><button onClick={() => toCheckout(item)} class="btn btn-outline-success">Pay</button></td>
-                                <td><button onClick={() => handleDelete(item.username)} class="btn btn-outline-danger">❌</button></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="offset"></div>
+            <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
+                <h1 className="customh1 mb-4">Your Requests</h1>
+                {outgoingData.length === 0 ? (
+                    <div className="text-center py-5" style={{ color: 'var(--text-light)' }}>
+                        <p>No outgoing requests yet.</p>
+                        <a className="btn primary-button" href="/explore">Browse Services</a>
+                    </div>
+                ) : (
+                    <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        <table className="table mb-0">
+                            <thead className="table-bg">
+                                <tr>
+                                    <th>Requested</th>
+                                    <th>Service</th>
+                                    <th>Directions</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {outgoingData.map((item) => (
+                                    <tr key={item.id}>
+                                        <td style={{ fontWeight: 500 }}>{item.requested}</td>
+                                        <td>{item.service}</td>
+                                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.directions}</td>
+                                        <td>{item.endDate}</td>
+                                        <td>
+                                            <span style={{
+                                                padding: '0.25rem 0.6rem',
+                                                borderRadius: '4px',
+                                                fontSize: '0.78rem',
+                                                fontWeight: 600,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.3px',
+                                                backgroundColor: item.accepted === 'accepted' ? '#d1fae5' : item.accepted === 'rejected' ? '#fee2e2' : '#f3f4f6',
+                                                color: item.accepted === 'accepted' ? '#065f46' : item.accepted === 'rejected' ? '#991b1b' : '#374151'
+                                            }}>
+                                                {item.accepted}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="d-flex align-items-center">
+                                                <button onClick={() => { toChat(item.requested) }} className="btn secondary-button mr-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                    Message
+                                                </button>
+                                                <button onClick={() => toCheckout(item)} className="btn primary-button" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                    Pay
+                                                </button>
+                                                <button onClick={() => handleDelete(item.id)} className="btn btn-outline-danger ml-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.6rem' }}>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
-        </Account>
+        </>
     )
 }
 

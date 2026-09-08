@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import { Account } from "../components/Account"
+import React, { useState, useEffect, useContext } from 'react'
+import { AccountContext } from "../components/Account"
 import Navbar from '../components/Navbar'
-import { fetchData } from '../AwsFunctions';
+import { fetchData } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
-import Pool from "../UserPool"
 
 function ExplorePage() {
-    const user = Pool.getCurrentUser();
+    const { user } = useContext(AccountContext);
 
     const [cardsData, setCardsData] = useState([]);
     const [searchWord, setSearchWord] = useState("");
@@ -14,23 +13,19 @@ function ExplorePage() {
     const [currentPage, setCurrentPage] = useState(1);
     const cardsPerPage = 15;
 
-    const fetchDataFromDynamoDb = async (event) => {
-        const data = await fetchData('user-table');
-        console.log(data.Items);
-        setCardsData(data.Items);
-        console.log(searchWord)
-        console.log(cardsData)
+    const fetchDataFromFirestore = async () => {
+        const data = await fetchData('services');
+        setCardsData(data);
         const lowerSearchWord = searchWord.toLowerCase();
-
-        const filteredOutgoingData = searchWord !== ""
-            ? data.Items.filter(item => item.service.toLowerCase().includes(lowerSearchWord))
-            : data.Items;
-        setOutgoingData(filteredOutgoingData);
+        const filteredData = searchWord !== ""
+            ? data.filter(item => (item.service || "").toLowerCase().includes(lowerSearchWord))
+            : data;
+        setOutgoingData(filteredData);
         setCurrentPage(1);
     };
 
     useEffect(() => {
-        fetchDataFromDynamoDb();
+        fetchDataFromFirestore();
         // eslint-disable-next-line
     }, [searchWord]);
 
@@ -54,51 +49,72 @@ function ExplorePage() {
     }
 
     return (
-        <Account>
+        <>
             <Navbar />
-            <div class="offset"></div>
-            <div class="container">
-                <h1 class="customh1">Browse Services</h1>
-                <div class="d-flex">
-                    <div>
-                        <div class="form-inline py-3">
-                            <input class="form-control mr-sm-2" type="search" placeholder="Search service" value={searchWord} aria-label="Search" onChange={(event) => setSearchWord(event.target.value)} />
-                            <button class="btn btn-outline-success secondary-button my-2 my-sm-0 ml-2" type="submit" onClick={clearing}>Clear</button>
-                        </div>
+            <div className="offset"></div>
+            <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
+                <h1 className="customh1 mb-4">Browse Services</h1>
+                <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap">
+                    <div className="d-flex align-items-center">
+                        <input
+                            className="form-control mr-2"
+                            type="search"
+                            placeholder="Search by service..."
+                            value={searchWord}
+                            aria-label="Search"
+                            style={{ width: '280px', height: '2.5rem' }}
+                            onChange={(event) => setSearchWord(event.target.value)}
+                        />
+                        {searchWord && (
+                            <button className="btn secondary-button" onClick={clearing} style={{ height: '2.5rem' }}>
+                                Clear
+                            </button>
+                        )}
                     </div>
-                    <div class="ml-auto p-2">
+                    <div>
                         {user ? (
-                            <a class="secondary-button btn btn-outline-success my-2 my-sm-0" href="profile">+</a>
+                            <a className="btn primary-button" href="profile" style={{ height: '2.5rem', lineHeight: '1.5rem' }}>+ Add Service</a>
                         ) : null}
                     </div>
                 </div>
 
-                <div class="d-flex flex-wrap justify-content-start py-2">
-                    {currentCards.map((card, index) => (
-                        <div class="customcard card mr-3 my-3" style={{ width: "22rem" }} key={index}>
-                            <div className="card-body">
-                                <h5 className="card-title">{card.name}</h5>
-                                <h6 className="card-title">{card.service}</h6>
-                                <p className="card-text">{card.description.length > 41 ? `${card.description.substring(0, 41)}...` : card.description}</p>
-                                <button onClick={() => { toComponentB(card) }} className="primary-button btn btn-primary text-light">Request</button>
+                <div className="d-flex flex-wrap justify-content-start">
+                    {currentCards.map((card) => (
+                        <div className="customcard card mr-3 mb-3" style={{ width: '21rem' }} key={card.id}>
+                            <div className="card-body" style={{ padding: '1.25rem' }}>
+                                <h5 className="card-title mb-1" style={{ fontSize: '1.05rem' }}>{card.name}</h5>
+                                <p className="mb-2" style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    {card.service}
+                                </p>
+                                <p className="card-text" style={{ fontSize: '0.88rem', color: 'var(--text-light)', lineHeight: 1.5 }}>
+                                    {(card.description || "").length > 60 ? `${card.description.substring(0, 60)}...` : card.description}
+                                </p>
+                                <button onClick={() => { toComponentB(card) }} className="primary-button btn" style={{ fontSize: '0.85rem', padding: '0.4rem 1.2rem' }}>
+                                    Request
+                                </button>
                             </div>
                         </div>
                     ))}
+                    {currentCards.length === 0 && (
+                        <div className="text-center w-100 py-5" style={{ color: 'var(--text-light)' }}>
+                            <p style={{ fontSize: '1rem' }}>No services found.</p>
+                        </div>
+                    )}
                 </div>
 
-                <nav aria-label="Page navigation" class="p-4">
-                    <ul className="pagination justify-content-center">
-                        {pageNumbers.map((number) => (
-                            <li key={number} className={`page-item ${currentPage === number ? 'active custombg' : ''}`}>
-                                <button className="page-link" onClick={() => setCurrentPage(number)}>{number}</button>
-                            </li>
-                        ))}
-                    </ul>
-                </nav>
-
+                {pageNumbers.length > 1 && (
+                    <nav aria-label="Page navigation" className="pt-4">
+                        <ul className="pagination justify-content-center">
+                            {pageNumbers.map((number) => (
+                                <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                                    <button className="page-link" onClick={() => setCurrentPage(number)} style={{ borderRadius: '6px', margin: '0 2px' }}>{number}</button>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                )}
             </div>
-
-        </Account>
+        </>
     )
 }
 

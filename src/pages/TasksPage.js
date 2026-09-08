@@ -1,152 +1,166 @@
-import React, { useEffect, useState } from 'react';
-import { Account } from '../components/Account'
+import React, { useEffect, useState, useContext } from 'react';
+import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { fetchData, deleteData, updateData } from '../AwsFunctions';
-import Pool from '../UserPool';
+import { fetchData, deleteData, updateData } from '../firebaseData';
 import { useNavigate } from 'react-router-dom';
-
 
 function TasksPage() {
     const [tableData, setTableData] = useState([]);
     const [link, setLink] = useState("");
+    const { getUsername } = useContext(AccountContext);
+    const username = getUsername();
 
-    const user = Pool.getCurrentUser().getUsername();
-
-    const fetchDataFromDynamoDb = async () => {
-        const data = await fetchData('outgoing-requests');
-        console.log(data.Items);
-        const filteredData = data.Items.filter(item => item.requested === user);
+    const fetchTasks = async () => {
+        const data = await fetchData('requests');
+        const filteredData = data.filter(item => item.requested === username);
         setTableData(filteredData);
     };
 
-    const handleDelete = async (username) => {
+    const handleDelete = async (documentId) => {
         try {
-            await deleteData('outgoing-requests', { username });
-            console.log(`Record with username ${username} deleted successfully`);
-            fetchDataFromDynamoDb();
+            await deleteData('requests', documentId);
+            fetchTasks();
         } catch (error) {
             console.log('Error deleting record:', error);
         }
     };
 
-
-    const handleAccept = async (username) => {
+    const handleAccept = async (documentId) => {
         try {
-            const updateExpression = "SET accepted = :accepted";
-            const expressionAttributeValues = { ":accepted": "accepted" };
-
-            await updateData('outgoing-requests', { username }, updateExpression, expressionAttributeValues);
-            console.log(`Record with username ${username} updated successfully`);
-
-            fetchDataFromDynamoDb();
+            await updateData('requests', documentId, { accepted: "accepted" });
+            fetchTasks();
         } catch (error) {
             console.log('Error updating record:', error);
         }
     };
 
     useEffect(() => {
-        fetchDataFromDynamoDb();
+        if (username) {
+            fetchTasks();
+        }
         // eslint-disable-next-line
-    }, []);
+    }, [username]);
 
     const navigate = useNavigate();
 
-    const toComponentB = (username) => {
-        navigate('/chat', { state: { username } });
+    const toChat = (targetUser) => {
+        navigate('/chat', { state: { username: targetUser } });
     }
 
     const checkLink = () => {
-        if (!link.includes("https://github.com")){
+        if (!link.includes("https://github.com")) {
             console.log('false')
-        }else{
+        } else {
             console.log('true')
         }
     }
 
     return (
-        <Account>
+        <>
             <Navbar />
-            <div class="offset"></div>
-            <div class="container">
-                <h1 class="customh1">Your Tasks</h1>
-                <table class="table">
-                    <thead class="table-bg">
-                        <tr>
-                            <th scope="col">Requester</th>
-                            <th scope="col">Service</th>
-                            <th scope="col">Directions</th>
-                            <th scope="col">End Date</th>
-                            <th scope="col">Chat</th>
-                            <th scope="col">Accepted</th>
-                            <th scope="col">Submit</th>
-                        </tr>
-                    </thead>
-                    <tbody class="">
-                        {tableData.map((item, index) => (
-                            <tr key={index}>
-                                <td>{item.username}</td>
-                                <td>{item.service}</td>
-                                <td>{item.directions}</td>
-                                <td>{item.endDate}</td>
-                                <td>
-                                    <button onClick={() => { toComponentB(item.username) }} className="secondary-button btn">Message</button>
-                                </td>
-                                <td>
-                                    {item.accepted === "false" ? (
-                                        <>
-                                            <button onClick={() => handleAccept(item.username)} class="btn btn-outline-success mr-2">✔️</button>
-                                            <button onClick={() => handleDelete(item.username)} class="btn btn-outline-danger">❌</button>
-                                        </>
-                                    ) : (
-                                        <label>{item.accepted}</label>
-                                    )}
-                                </td>
-                                <td>
-                                    {item.accepted === "false" ? (
-                                        <>
-                                            <label>N/A until accepted</label>
-                                        </>
-                                    ) : (
-                                        <div>
-                                            <button type="button" className="secondary-button btn" data-toggle="modal" data-target="#exampleModal">Github Link</button>
-                                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="exampleModalLabel">Github Project Link</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="form-outline m-4 input-wrap">
-                                                            <input required
-                                                                type="link"
-                                                                id="linkInput"
-                                                                class="input-field form-control form-control-lg"
-                                                                value={link}
-                                                                onChange={(event) => setLink(event.target.value)}
-                                                            />
-                                                            <label>Link</label>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn secondary-button" data-dismiss="modal">Close</button>
-                                                            <button onClick={checkLink} type="button" class="btn primary-button">Save changes</button>
+            <div className="offset"></div>
+            <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
+                <h1 className="customh1 mb-4">Your Tasks</h1>
+                {tableData.length === 0 ? (
+                    <div className="text-center py-5" style={{ color: 'var(--text-light)' }}>
+                        <p>No incoming tasks yet.</p>
+                    </div>
+                ) : (
+                    <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                        <table className="table mb-0">
+                            <thead className="table-bg">
+                                <tr>
+                                    <th>Requester</th>
+                                    <th>Service</th>
+                                    <th>Directions</th>
+                                    <th>End Date</th>
+                                    <th>Chat</th>
+                                    <th>Status</th>
+                                    <th>Submit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tableData.map((item) => (
+                                    <tr key={item.id}>
+                                        <td style={{ fontWeight: 500 }}>{item.username}</td>
+                                        <td>{item.service}</td>
+                                        <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.directions}</td>
+                                        <td>{item.endDate}</td>
+                                        <td>
+                                            <button onClick={() => { toChat(item.username) }} className="btn secondary-button" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                Message
+                                            </button>
+                                        </td>
+                                        <td>
+                                            {item.accepted === "false" ? (
+                                                <div className="d-flex align-items-center">
+                                                    <button onClick={() => handleAccept(item.id)} className="btn primary-button mr-2" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                        Accept
+                                                    </button>
+                                                    <button onClick={() => handleDelete(item.id)} className="btn btn-outline-danger" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span style={{
+                                                    padding: '0.25rem 0.6rem',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.78rem',
+                                                    fontWeight: 600,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.3px',
+                                                    backgroundColor: '#d1fae5',
+                                                    color: '#065f46'
+                                                }}>
+                                                    {item.accepted}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {item.accepted === "false" ? (
+                                                <span style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Pending</span>
+                                            ) : (
+                                                <div>
+                                                    <button type="button" className="btn secondary-button" data-toggle="modal" data-target="#exampleModal" style={{ fontSize: '0.82rem', padding: '0.35rem 0.75rem' }}>
+                                                        GitHub Link
+                                                    </button>
+                                                    <div className="modal fade" id="exampleModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                        <div className="modal-dialog" role="document">
+                                                            <div className="modal-content">
+                                                                <div className="modal-header">
+                                                                    <h5 className="modal-title" id="exampleModalLabel" style={{ fontWeight: 600, fontSize: '1.05rem' }}>Submit GitHub Link</h5>
+                                                                    <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                                <div className="form-outline m-4 input-wrap">
+                                                                    <input required
+                                                                        type="url"
+                                                                        className="input-field form-control"
+                                                                        placeholder="https://github.com/..."
+                                                                        value={link}
+                                                                        onChange={(event) => setLink(event.target.value)}
+                                                                    />
+                                                                    <label>GitHub Repository URL</label>
+                                                                </div>
+                                                                <div className="modal-footer">
+                                                                    <button type="button" className="btn secondary-button" data-dismiss="modal">Close</button>
+                                                                    <button onClick={checkLink} type="button" className="btn primary-button">Save</button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-
-
-
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
-        </Account>
+        </>
     )
 }
 

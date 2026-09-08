@@ -16,6 +16,7 @@ import RequestMgmtPage from './pages/RequestMgmtPage';
 import ChatPage from './pages/ChatPage';
 import TasksPage from './pages/TasksPage';
 import Checkout from './components/Checkout';
+import { Account } from './components/Account';
 
 const router = createBrowserRouter([
   {
@@ -62,12 +63,9 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <div>
-    
+  <Account>
     <RouterProvider router={router} />
-
-  </div>
-
+  </Account>
 );
 
 // If you want to start measuring performance in your app, pass a function

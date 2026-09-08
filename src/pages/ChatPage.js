@@ -1,29 +1,29 @@
-import React from "react";
-import { ChatApp } from "mirrorfly-uikit/dist";
+import React, { useContext } from "react";
+import { ChatApp } from "mirrorfly-uikit";
 import "mirrorfly-uikit/dist/assets/scss/bundle.css";
-import Pool from "../UserPool";
-import { Account } from "../components/Account";
+import { AccountContext } from "../components/Account";
 import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar'
 import * as SDK from "mirrorfly-sdk"
 
 function ChatPage() {
-    const user = Pool.getCurrentUser().getUsername();
+    const { getUsername } = useContext(AccountContext);
+    const user = getUsername();
 
     const location = useLocation();
 
-    const initSDK = async () =>{
+    const initSDK = async () => {
         const initializeObj = {
-            apiBaseUrl:"https://api-preprod-sandbox.mirrorfly.com/api/v1",
-            licenseKey:`${process.env.REACT_APP_MIRRORFLY_KEY}`,
-            isTrialLicenseKey:true,
+            apiBaseUrl: "https://api-preprod-sandbox.mirrorfly.com/api/v1",
+            licenseKey: `${process.env.REACT_APP_MIRRORFLY_KEY}`,
+            isTrialLicenseKey: true,
             callbackListeners: {},
         };
         let initSDKResponse = await SDK.initializeSDK(initializeObj);
         console.log("initSDK", initSDKResponse)
     }
 
-    const userLogin = async ()=>{
+    const userLogin = async () => {
         initSDK()
         let userRegistration = await SDK.register(user);
         console.log("userRegistration", userRegistration)
@@ -41,7 +41,7 @@ function ChatPage() {
     }
 
     return (
-        <Account>
+        <>
             <Navbar />
             <ChatApp
                 licenseKey="bGgiZSaz6Qjq0T86lW0D4H9Gx8iDNY"
@@ -50,7 +50,7 @@ function ChatPage() {
                 isSandBox={true}
                 customConversation={customConversation}
             />
-        </Account>
+        </>
     );
 }
 
