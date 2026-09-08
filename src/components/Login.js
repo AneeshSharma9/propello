@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AccountContext } from "./Account";
 import logo from '../public/campus_coder_logo_temp.png'
 
@@ -9,13 +10,14 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
 
     const { signIn, signInWithGoogle } = useContext(AccountContext);
+    const navigate = useNavigate();
 
     const onSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
         signIn(email, password)
             .then(() => {
-                window.location.href = "/";
+                navigate("/");
             })
             .catch((err) => {
                 console.log("Failed to login", err);
@@ -28,7 +30,7 @@ const Login = () => {
         setLoading(true);
         signInWithGoogle()
             .then(() => {
-                window.location.href = "/";
+                navigate("/");
             })
             .catch((err) => {
                 console.log("Failed to login with Google", err);
@@ -103,11 +105,11 @@ const Login = () => {
                                     <div className="text-center mt-4">
                                         <p style={{ fontSize: '0.88rem', color: 'var(--text-light)', marginBottom: '0.5rem' }}>
                                             Don't have an account?{" "}
-                                            <a href="signup" className="small-link">Register here</a>
+                                            <Link to="signup" className="small-link">Register here</Link>
                                         </p>
-                                        <a href="/login" style={{ fontSize: '0.82rem', color: 'var(--text-light)' }}>
+                                        <Link to="/login" style={{ fontSize: '0.82rem', color: 'var(--text-light)' }}>
                                             Forgot password?
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

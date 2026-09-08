@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -13,7 +14,7 @@ function NotFoundPage() {
                 <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
                     The page you're looking for doesn't exist or may have moved.
                 </p>
-                <a className="btn primary-button" href="/explore">Browse Services</a>
+                <Link className="btn primary-button" to="/explore">Browse Services</Link>
             </div>
             <Footer />
         </>

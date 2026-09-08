@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { putData } from '../firebaseData';
 
 function RequestPage() {
@@ -99,7 +99,7 @@ function RequestPage() {
                             <button className="btn primary-button" type="submit" disabled={submitting}>
                                 {submitting ? "Submitting..." : "Submit Request"}
                             </button>
-                            <a className="btn secondary-button ml-3" href="./explore">Cancel</a>
+                            <Link className="btn secondary-button ml-3" to="/explore">Cancel</Link>
                         </div>
                     </form>
                 </div>

@@ -968,6 +968,10 @@ textarea.form-control {
   padding: 4.5rem 0;
 }
 
+section[id] {
+  scroll-margin-top: 78px;
+}
+
 .content-section-alt {
   background: var(--bg-gray);
   border-top: 1px solid var(--border);
@@ -1284,6 +1288,20 @@ textarea.form-control {
 /* ========================
    ACCESSIBILITY / FOCUS
 ======================= */
+
+.nav-skeleton {
+  display: inline-block;
+  width: 92px;
+  height: 2.3rem;
+  border-radius: var(--radius);
+  background: #dfe5e3;
+  animation: placeholderPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
 
 a:focus-visible,
 button:focus-visible,

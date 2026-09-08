@@ -20,51 +20,58 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { Account } from './components/Account';
 import { ToastProvider } from './components/Toast';
 import NotFoundPage from './pages/NotFoundPage';
+import HashScroll from './components/HashScroll';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
-  },
-  {
-    path: "login",
-    element: <LoginPage />,
-  },
-  {
-    path: "signup",
-    element: <SignupPage />,
-  },
-  {
-    path: "explore",
-    element: <ExplorePage />,
-  },
-  {
-    path: "profile",
-    element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
-  },
-  {
-    path: "request",
-    element: <ProtectedRoute><RequestPage /></ProtectedRoute>,
-  },
-  {
-    path: "requestmgmt",
-    element: <ProtectedRoute><RequestMgmtPage /></ProtectedRoute>,
-  },
-  {
-    path: "chat",
-    element: <ProtectedRoute><ChatPage /></ProtectedRoute>,
-  },
-  {
-    path: "tasks",
-    element: <ProtectedRoute><TasksPage /></ProtectedRoute>,
-  },
-  {
-    path: "checkout",
-    element: <ProtectedRoute><Checkout /></ProtectedRoute>,
-  },
-  {
-    path: "*",
-    element: <NotFoundPage />,
+    element: <HashScroll />,
+    children: [
+      {
+        path: "",
+        element: <App />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignupPage />,
+      },
+      {
+        path: "explore",
+        element: <ExplorePage />,
+      },
+      {
+        path: "profile",
+        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
+      },
+      {
+        path: "request",
+        element: <ProtectedRoute><RequestPage /></ProtectedRoute>,
+      },
+      {
+        path: "requestmgmt",
+        element: <ProtectedRoute><RequestMgmtPage /></ProtectedRoute>,
+      },
+      {
+        path: "chat",
+        element: <ProtectedRoute><ChatPage /></ProtectedRoute>,
+      },
+      {
+        path: "tasks",
+        element: <ProtectedRoute><TasksPage /></ProtectedRoute>,
+      },
+      {
+        path: "checkout",
+        element: <ProtectedRoute><Checkout /></ProtectedRoute>,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      },
+    ],
   },
 ]);
 

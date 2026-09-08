@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useToast } from '../components/Toast'
 import { fetchWhere, deleteData, deleteWhere, putData, updateData } from '../firebaseData';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const chatIdFor = (item) => [item.username, item.requested].filter(Boolean).sort().join("__");
 
@@ -103,7 +103,7 @@ function RequestMgmtPage() {
                 ) : outgoingData.length === 0 ? (
                     <div className="text-center py-5 fade-in-up" style={{ color: 'var(--text-light)' }}>
                         <p>No outgoing requests yet.</p>
-                        <a className="btn primary-button" href="/explore">Browse Services</a>
+                        <Link className="btn primary-button" to="/explore">Browse Services</Link>
                     </div>
                 ) : (
                     <div className="fade-in-up" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>

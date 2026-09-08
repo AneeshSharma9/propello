@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import { Link } from "react-router-dom";
 import { AccountContext } from "./Account";
 import logo from "../public/campus_coder_logo_temp.png";
 
@@ -22,10 +23,10 @@ function Footer() {
                     <div className="col-6 col-md-3 offset-lg-1 mb-4 mb-lg-0">
                         <h6 className="footer-heading">Explore</h6>
                         <ul className="footer-links">
-                            <li><a href="/">Home</a></li>
-                            <li><a href="/explore">Browse Services</a></li>
-                            <li><a href="/#about">About</a></li>
-                            <li><a href="/#how">How it Works</a></li>
+                            <li><Link to="/">Home</Link></li>
+                            <li><Link to="/explore">Browse Services</Link></li>
+                            <li><Link to="/#about">About</Link></li>
+                            <li><Link to="/#how">How it Works</Link></li>
                         </ul>
                     </div>
                     <div className="col-6 col-md-3">
@@ -33,14 +34,14 @@ function Footer() {
                         <ul className="footer-links">
                             {user ? (
                                 <>
-                                    <li><a href="/profile">Profile</a></li>
-                                    <li><a href="/tasks">Tasks</a></li>
-                                    <li><a href="/requestmgmt">Your Requests</a></li>
+                                    <li><Link to="/profile">Profile</Link></li>
+                                    <li><Link to="/tasks">Tasks</Link></li>
+                                    <li><Link to="/requestmgmt">Your Requests</Link></li>
                                 </>
                             ) : (
                                 <>
-                                    <li><a href="/login">Log In</a></li>
-                                    <li><a href="/signup">Sign Up</a></li>
+                                    <li><Link to="/login">Log In</Link></li>
+                                    <li><Link to="/signup">Sign Up</Link></li>
                                 </>
                             )}
                         </ul>

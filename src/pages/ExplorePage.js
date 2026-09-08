@@ -3,7 +3,7 @@ import { AccountContext } from "../components/Account"
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { fetchData } from '../firebaseData';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function ExplorePage() {
     const { user } = useContext(AccountContext);
@@ -99,7 +99,7 @@ function ExplorePage() {
                     </div>
                     <div>
                         {user ? (
-                            <a className="btn primary-button" href="profile" style={{ height: '2.5rem', lineHeight: '1.5rem' }}>+ Add Service</a>
+                            <Link className="btn primary-button" to="/profile" style={{ height: '2.5rem', lineHeight: '1.5rem' }}>+ Add Service</Link>
                         ) : null}
                     </div>
                 </div>

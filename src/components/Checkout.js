@@ -1,7 +1,7 @@
 import { CLIENT_ID } from '../config/Config'
 import React, { useState, useEffect } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useToast } from './Toast';
@@ -55,7 +55,7 @@ const Checkout = () => {
                     {!item ? (
                         <div className="p-4 text-center" style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
                             <p style={{ color: 'var(--text-light)' }}>Nothing to check out right now.</p>
-                            <a className="btn primary-button" href="/explore">Browse Services</a>
+                            <Link className="btn primary-button" to="/explore">Browse Services</Link>
                         </div>
                     ) : !CLIENT_ID ? (
                         <div className="p-4 text-center" style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>

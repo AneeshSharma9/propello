@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AccountContext } from "./Account"
 
 const Signup = () => {
@@ -13,13 +14,14 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
 
     const { signUp } = useContext(AccountContext);
+    const navigate = useNavigate();
 
     const onSubmit = (event) => {
         event.preventDefault();
         setLoading(true);
         signUp(email, password, { username, firstName: firstname, lastName: lastname, phone: phonenum, bio })
             .then(() => {
-                window.location.href = "/";
+                navigate("/");
             })
             .catch((err) => {
                 console.error(err);
@@ -147,7 +149,7 @@ const Signup = () => {
                                     <div className="text-center mt-4">
                                         <p style={{ fontSize: '0.88rem', color: 'var(--text-light)' }}>
                                             Already have an account?{" "}
-                                            <a href="login" className="small-link">Login here</a>
+                                            <Link to="login" className="small-link">Login here</Link>
                                         </p>
                                     </div>
                                 </div>

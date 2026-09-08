@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { AccountContext } from "../components/Account";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { putData, subscribeWhere } from '../firebaseData';
@@ -73,7 +73,7 @@ function ChatPage() {
                 <div className="container" style={{ paddingTop: '1.5rem' }}>
                         <div className="text-center py-5" style={{ color: 'var(--text-light)' }}>
                             <p>No conversation selected.</p>
-                            <a className="btn primary-button" href="/explore">Browse Services</a>
+                            <Link className="btn primary-button" to="/explore">Browse Services</Link>
                         </div>
                     </div>
                 <Footer />
@@ -92,7 +92,7 @@ function ChatPage() {
                             <h5 className="mb-0" style={{ fontWeight: 600 }}>{targetUsername}</h5>
                             <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>Chat with {targetUsername}</span>
                         </div>
-                        <a href="/requestmgmt" className="small-link" style={{ fontSize: '0.85rem' }}>Your Requests</a>
+                        <Link to="/requestmgmt" className="small-link" style={{ fontSize: '0.85rem' }}>Your Requests</Link>
                     </div>
 
                     <div className="chat-body" ref={endRef}>

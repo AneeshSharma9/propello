@@ -1,4 +1,5 @@
 import "./App.css";
+import { Link } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -70,7 +71,7 @@ function App() {
                                 with chat, task tracking, and payments built in.
                             </p>
                             <div className="hero-actions">
-                                <a className="btn hero-button" href="/explore">Explore Services</a>
+                                <Link className="btn hero-button" to="/explore">Explore Services</Link>
                                 <a className="btn hero-button-outline" href="#how">How it Works</a>
                             </div>
                         </div>
@@ -174,8 +175,8 @@ function App() {
                     <h2 className="cta-title">Ready to get started?</h2>
                     <p className="cta-text">Browse services or offer your own — join Propello today.</p>
                     <div className="cta-actions">
-                        <a className="btn cta-button" href="/explore">Browse Services</a>
-                        <a className="btn cta-button-outline" href="/signup">Sign Up Free</a>
+                        <Link className="btn cta-button" to="/explore">Browse Services</Link>
+                        <Link className="btn cta-button-outline" to="/signup">Sign Up Free</Link>
                     </div>
                 </div>
             </section>
