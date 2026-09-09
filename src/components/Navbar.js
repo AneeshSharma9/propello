@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
-import logo from "../public/campus_coder_logo_temp.png";
+import logo from "../public/propello_logo_temp.png";
 import Status from "../components/Status"
 import { AccountContext } from "./Account";
 

@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AccountContext } from "./Account";
-import logo from '../public/campus_coder_logo_temp.png'
+import logo from '../public/propello_logo_temp.png'
 
 const Login = () => {
     const [email, setEmail] = useState("");
