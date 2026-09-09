@@ -1,63 +1,25 @@
-import React, { useState, useEffect } from "react";
-import Pool from "../UserPool";
-import logo from "../public/campus_coder_logo_temp.png";
+import React, { useContext } from "react";
+import { Link } from "react-router-dom";
+import logo from "../public/propello_logo_temp.png";
 import Status from "../components/Status"
-
+import { AccountContext } from "./Account";
 
 function Navbar() {
-    const user = Pool.getCurrentUser();
-    const getIdToken = () => {
-        const user = Pool.getCurrentUser();
-        if (user) {
-            return new Promise((resolve, reject) => {
-                user.getSession((err, session) => {
-                    if (err) {
-                        console.log("Session Error:", err);
-                        reject(err);
-                    } else {
-                        resolve(session.getIdToken().getJwtToken());
-                    }
-                });
-            });
-        }
-        return null;
-    };
-
-    const [loginLabel, setLoginLabel] = useState("");
-    const [loginhrefLabel, setLoginhrefLabel] = useState("");
-
-    useEffect(() => {
-        const fetchFullName = async () => {
-            const idToken = await getIdToken();
-            if (idToken) {
-                const decodedToken = JSON.parse(atob(idToken.split(".")[1]));
-                const name = decodedToken.name || "Unknown";
-                const nameArray = name.split(" ");
-                let firstname = nameArray[0];
-                setLoginhrefLabel("profile");
-                setLoginLabel(firstname);
-            } else {
-                setLoginhrefLabel("login");
-                setLoginLabel("Log In");
-            }
-        };
-
-        fetchFullName();
-    }, []);
+    const { user, profile, initializing } = useContext(AccountContext);
+    const displayName = profile?.name || user?.displayName || "";
+    const firstname = displayName ? String(displayName).split(" ")[0] : "";
+    const loginTo = user ? "/profile" : "/login";
 
     return (
-
-        <nav class="navbar navbar-bg fixed-top navbar-expand-lg navbar-light">
-            <div class="pl-3">
-                <a href="/">
-                    <img src={logo} alt="Logo" class="" width={50} />
-                </a>
+        <nav className="navbar navbar-bg fixed-top navbar-expand-lg navbar-light">
+            <div className="d-flex align-items-center pl-3">
+                <Link to="/" className="d-flex align-items-center text-decoration-none">
+                    <img src={logo} alt="Propello" width={36} className="mr-2" style={{ borderRadius: '6px' }} />
+                    <span className="logo">Propello</span>
+                </Link>
             </div>
-            <a class="logo pl-4" href="/">
-                Propello
-            </a>
             <button
-                class="navbar-toggler"
+                className="navbar-toggler border-0"
                 type="button"
                 data-toggle="collapse"
                 data-target="#navbarSupportedContent"
@@ -65,40 +27,50 @@ function Navbar() {
                 aria-expanded="false"
                 aria-label="Toggle navigation"
             >
-                <span class="navbar-toggler-icon"></span>
+                <span className="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ml-auto mt-2 mb-2">
-                    <li class="nav-item nav-item-style ">
-                        <a class="navcolor nav-link pr-4 pl-4" href="/">
-                            Home<span class="sr-only">(current)</span>
-                        </a>
+            <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul className="navbar-nav ml-auto mt-2 mb-2 align-items-center">
+                    <li className="nav-item nav-item-style">
+                        <Link className="navcolor nav-link px-3" to="/">
+                            Home
+                        </Link>
                     </li>
-                    <li class="nav-item nav-item-style">
-                        <a class="navcolor nav-link pr-4 pl-4" href="explore">
+                    <li className="nav-item nav-item-style">
+                        <Link className="navcolor nav-link px-3" to="/explore">
                             Explore
-                        </a>
+                        </Link>
                     </li>
-                    {user ? (
-                        <li class="nav-item dropdown nav-item-style">
-                            <a class="navcolor nav-link dropdown-toggle" href="#/" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {loginLabel}
+                    {initializing ? (
+                        <li className="ml-2 mr-3">
+                            <span className="nav-skeleton" aria-hidden="true" />
+                        </li>
+                    ) : user && profile ? (
+                        <li className="nav-item dropdown nav-item-style">
+                            <a
+                                className="navcolor nav-link dropdown-toggle px-3"
+                                href="#/"
+                                id="navbarDropdown"
+                                role="button"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                            >
+                                {firstname || "Account"}
                             </a>
-                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                                <a class="dropdown-item" href="/profile">Profile</a>
-                                <a class="dropdown-item" href="/tasks">Tasks</a>
-                                <a class="dropdown-item" href="/requestmgmt">Your Requests</a>
-                                <div class="dropdown-divider"></div>
-                                <Status class="dropdown-item"/>
+                            <div className="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown" style={{ borderRadius: 'var(--radius)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
+                                <Link className="dropdown-item" to="/profile">Profile</Link>
+                                <Link className="dropdown-item" to="/tasks">Tasks</Link>
+                                <Link className="dropdown-item" to="/requestmgmt">Your Requests</Link>
+                                <div className="dropdown-divider"></div>
+                                <Status />
                             </div>
                         </li>
-
                     ) : (
-                        <li class="login-button mr-4 ml-4">
-                            <a class="colorchange nav-link " href={loginhrefLabel}>Log In</a>
+                        <li className="ml-2 mr-3">
+                            <Link className="login-button nav-link px-4" to={loginTo}>Log In</Link>
                         </li>
-
                     )}
                 </ul>
             </div>

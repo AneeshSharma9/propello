@@ -16,58 +16,72 @@ import RequestMgmtPage from './pages/RequestMgmtPage';
 import ChatPage from './pages/ChatPage';
 import TasksPage from './pages/TasksPage';
 import Checkout from './components/Checkout';
+import ProtectedRoute from './components/ProtectedRoute';
+import { Account } from './components/Account';
+import { ToastProvider } from './components/Toast';
+import NotFoundPage from './pages/NotFoundPage';
+import HashScroll from './components/HashScroll';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
-  },
-  {
-    path: "login",
-    element: <LoginPage />,
-  },
-  {
-    path: "signup",
-    element: <SignupPage />,
-  },
-  {
-    path: "explore",
-    element: <ExplorePage />,
-  },
-  {
-    path: "profile",
-    element: <ProfilePage />,
-  },
-  {
-    path: "request",
-    element: <RequestPage />,
-  },
-  {
-    path: "requestmgmt",
-    element: <RequestMgmtPage />,
-  },
-  {
-    path: "chat",
-    element: <ChatPage />,
-  },
-  {
-    path: "tasks",
-    element: <TasksPage />,
-  },
-  {
-    path: "checkout",
-    element: <Checkout />,
+    element: <HashScroll />,
+    children: [
+      {
+        path: "",
+        element: <App />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "signup",
+        element: <SignupPage />,
+      },
+      {
+        path: "explore",
+        element: <ExplorePage />,
+      },
+      {
+        path: "profile",
+        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
+      },
+      {
+        path: "request",
+        element: <ProtectedRoute><RequestPage /></ProtectedRoute>,
+      },
+      {
+        path: "requestmgmt",
+        element: <ProtectedRoute><RequestMgmtPage /></ProtectedRoute>,
+      },
+      {
+        path: "chat",
+        element: <ProtectedRoute><ChatPage /></ProtectedRoute>,
+      },
+      {
+        path: "tasks",
+        element: <ProtectedRoute><TasksPage /></ProtectedRoute>,
+      },
+      {
+        path: "checkout",
+        element: <ProtectedRoute><Checkout /></ProtectedRoute>,
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />,
+      },
+    ],
   },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <div>
-    
-    <RouterProvider router={router} />
-
-  </div>
-
+  <Account>
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
+  </Account>
 );
 
 // If you want to start measuring performance in your app, pass a function

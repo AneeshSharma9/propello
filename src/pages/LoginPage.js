@@ -1,14 +1,15 @@
 import React from 'react'
 import Login from '../components/Login';
-import { Account } from "../components/Account"
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 function LoginPage() {
     return (
-        <Account >
+        <>
             <Navbar />
             <Login />
-        </Account>
+            <Footer />
+        </>
     )
 }
 

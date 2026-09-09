@@ -1,105 +1,115 @@
 import { CLIENT_ID } from '../config/Config'
 import React, { useState, useEffect } from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
-import { Account } from "../components/Account"
-
+import Footer from './Footer';
+import { useToast } from './Toast';
 
 const Checkout = () => {
     const location = useLocation();
-    const item = location.state.item
+    const item = location.state?.item;
+    const amount = item?.amount != null && !isNaN(item.amount) ? Number(item.amount).toFixed(2) : "20.00";
+    const { showToast } = useToast();
 
-    const [show, setShow] = useState(false);
     const [success, setSuccess] = useState(false);
     const [ErrorMessage, setErrorMessage] = useState("");
-    const [orderID, setOrderID] = useState(false);
 
-    // creates a paypal order
     const createOrder = (data, actions) => {
         return actions.order.create({
             purchase_units: [
                 {
-                    description: "Sunflower",
+                    description: `Propello Service - ${item?.service || "Service"}`,
                     amount: {
                         currency_code: "USD",
-                        value: 20,
+                        value: amount,
                     },
                 },
             ],
-        }).then((orderID) => {
-            setOrderID(orderID);
-            return orderID;
         });
     };
 
-    // check Approval
     const onApprove = (data, actions) => {
         return actions.order.capture().then(function (details) {
-            const { payer } = details;
             setSuccess(true);
         });
     };
 
-    //capture likely error
     const onError = (data, actions) => {
-        setErrorMessage("An Error occured with your payment ");
+        setErrorMessage("An error occurred with your payment.");
     };
 
     useEffect(() => {
         if (success) {
-            alert("Payment successful!!");
-            console.log('Order successful . Your order id is--', orderID);
+            showToast("Payment successful!");
         }
+        // eslint-disable-next-line
     }, [success]);
 
-    const onSubmit = (event) => {
-        console.log('payment sent')
-    };
-
     return (
-        <Account>
+        <>
             <Navbar />
-            <PayPalScriptProvider options={{ "client-id": CLIENT_ID }}>
-                <div class="offset"></div>
+            <div className="offset"></div>
+            <section>
+                <div className="container py-4" style={{ maxWidth: '560px' }}>
+                    {!item ? (
+                        <div className="p-4 text-center" style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
+                            <p style={{ color: 'var(--text-light)' }}>Nothing to check out right now.</p>
+                            <Link className="btn primary-button" to="/explore">Browse Services</Link>
+                        </div>
+                    ) : !CLIENT_ID ? (
+                        <div className="p-4 text-center" style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
+                            <h2 className="customh1 mb-1" style={{ fontSize: '1.5rem' }}>Payment unavailable</h2>
+                            <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                PayPal isn't configured yet. Add your PayPal Client ID to{" "}
+                                <code style={{ fontSize: '0.85rem' }}>REACT_APP_PAYPAL_CLIENT</code> (in .env locally and in Netlify's environment variables).
+                            </p>
+                        </div>
+                    ) : (
+                        <PayPalScriptProvider options={{ clientId: CLIENT_ID, intent: "capture" }}>
+                            <div className="p-4 fade-in-up" style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)' }}>
+                                <h2 className="customh1 mb-1" style={{ fontSize: '1.5rem' }}>Payment Details</h2>
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Review your request before paying.</p>
 
-                <section class="text-lg-start">
-                    <div class="container py-4 p-5">
-                        <div class="align-items-center p-5">
-                            <div class="signupcard-border">
-                                <div class="card cascading-right cas-right-card" >
-                                    <div class="card-body p-5 shadow-5 ">
-                                        <h2 class="fw-bold mb-4">Payment Details</h2>
-                                        <form onSubmit={onSubmit}>
-
-                                            <label>Requested</label>
-                                            <input readOnly type="text" id="form3Example3" class="form-control mb-4" value={item.requested} />
-
-                                            <label>Service</label>
-                                            <input readOnly required type="phonenum" id="form3Example9" class="form-control mb-4" value={item.service} />
-
-                                            <label>Task</label>
-                                            <input readOnly required type="username" id="form3Example9" class="form-control mb-4" value={item.directions} />
-
-                                            <PayPalButtons
-                                                style={{ layout: "vertical", disableMaxWidth: true, color: "blue"}}
-                                                createOrder={createOrder}
-                                                onApprove={onApprove}
-                                            />
-
-
-                                        </form>
+                                <div className="mb-3">
+                                    <label style={{ fontSize: '0.82rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600 }}>Provider</label>
+                                    <div className="form-control alert alert-secondary" style={{ marginBottom: 0 }}>{item.requested}</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label style={{ fontSize: '0.82rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600 }}>Service</label>
+                                    <div className="form-control alert alert-secondary" style={{ marginBottom: 0 }}>{item.service}</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label style={{ fontSize: '0.82rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600 }}>Task Details</label>
+                                    <div className="form-control alert alert-secondary" style={{ marginBottom: 0 }}>{item.directions || "-"}</div>
+                                </div>
+                                <div className="mb-3">
+                                    <label style={{ fontSize: '0.82rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600 }}>Amount Due</label>
+                                    <div className="form-control alert alert-secondary" style={{ marginBottom: 0 }}>
+                                        <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>${amount}</span>
                                     </div>
                                 </div>
+
+                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                                    {ErrorMessage && (
+                                        <div className="alert alert-danger py-2 mb-3" role="alert" style={{ fontSize: '0.85rem', borderRadius: 'var(--radius)' }}>
+                                            {ErrorMessage}
+                                        </div>
+                                    )}
+                                    <PayPalButtons
+                                        style={{ layout: "vertical", disableMaxWidth: true, color: "blue", shape: "rect", height: 45 }}
+                                        createOrder={createOrder}
+                                        onApprove={onApprove}
+                                        onError={onError}
+                                    />
+                                </div>
                             </div>
-
-                        </div>
-                    </div>
-                </section>
-
-            </PayPalScriptProvider>
-        </Account>
-
+                        </PayPalScriptProvider>
+                    )}
+                </div>
+            </section>
+            <Footer />
+        </>
     );
 }
 

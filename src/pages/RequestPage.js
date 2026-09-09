@@ -1,71 +1,111 @@
-import React, { useState } from 'react';
-import { Account } from '../components/Account'
+import React, { useContext, useState } from 'react';
+import { AccountContext } from '../components/Account'
 import Navbar from '../components/Navbar'
-import { useLocation, useNavigate } from 'react-router-dom';
-import { putData } from '../AwsFunctions';
-import Pool from '../UserPool';
+import Footer from '../components/Footer'
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { putData } from '../firebaseData';
 
 function RequestPage() {
-    const user = Pool.getCurrentUser();
+    const { user, getUsername } = useContext(AccountContext);
     const navigate = useNavigate();
 
     const location = useLocation();
     const [directions, setDirections] = useState("");
     const [endDate, setEndDate] = useState("");
     const [contact, setContact] = useState("");
+    const [urgency, setUrgency] = useState("");
+    const [offer, setOffer] = useState(location.state.card.price != null ? String(location.state.card.price) : "");
+    const [submitting, setSubmitting] = useState(false);
 
     const onSubmit = async (event) => {
         event.preventDefault();
+        setSubmitting(true);
         const userData = {
-            username: user.getUsername(),
+            username: getUsername(),
+            requesterId: user?.uid,
             requested: location.state.card.username,
+            providerId: location.state.card.userId,
             service: location.state.card.service,
             endDate: endDate,
             contact: contact,
             directions: directions,
+            urgency: urgency,
+            amount: offer !== "" ? Number(offer) : null,
             accepted: "false"
         }
-        await putData('outgoing-requests', userData)
+        await putData('requests', userData)
         navigate('../requestmgmt');
     };
 
-    
-
     return (
-        <Account>
+        <>
             <Navbar />
-            <div class="container">
-                <h1 class="customh1">Requesting Service</h1>
-                <form onSubmit={onSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="name">Request for</label>
-                        <label class="form-control alert alert-secondary" id="nameInput" aria-describedby="nameHelp">{user.getUsername()}</label>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="name">Requesting service from</label>
-                        <label class="form-control alert alert-secondary" id="nameInput" aria-describedby="nameHelp">{location.state.card.name}</label>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="service">Service</label>
-                        <label class="form-control alert alert-secondary" id="serviceInput" aria-describedby="serviceHelp">{location.state.card.service}</label>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="service">Preferred Contact Info</label>
-                        <input class="form-control" id="contactInput" aria-describedby="contactHelp" placeholder="Email, phone #, etc." value={contact} onChange={(event) => setContact(event.target.value)} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="service">End date</label>
-                        <input class="form-control" id="endDateInput" aria-describedby="endDateHelp" placeholder="mm/dd/yyyy" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="directions">Directions</label>
-                        <textarea class="form-control" rows="5" id="directionsInput" aria-describedby="directionHelp" placeholder="Enter directions" value={directions} onChange={(event) => setDirections(event.target.value)} />
-                    </div>
-                    <button class="primary-button btn" type="submit" >Request</button>
-                    <a class="secondary-button btn ml-3" type="cancel" href="./explore">Cancel</a>
-                </form>
+            <div className="offset"></div>
+            <div className="container" style={{ paddingTop: '1.5rem', paddingBottom: '3rem', maxWidth: '640px' }}>
+                <h1 className="customh1 mb-4">Request a Service</h1>
+                <div style={{ background: 'var(--bg-gray)', borderRadius: 'var(--radius-lg)', padding: '2rem', border: '1px solid var(--border)' }}>
+                    <form onSubmit={onSubmit}>
+                        <div className="form-group">
+                            <label>Your Username</label>
+                            <div className="form-control alert alert-secondary" style={{ marginBottom: 0, cursor: 'default' }}>
+                                {getUsername()}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Requesting From</label>
+                            <div className="form-control alert alert-secondary" style={{ marginBottom: 0, cursor: 'default' }}>
+                                {location.state.card.name}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Service</label>
+                            <div className="form-control alert alert-secondary" style={{ marginBottom: 0, cursor: 'default' }}>
+                                {location.state.card.service}
+                            </div>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Offer / Budget (USD)</label>
+                                    <input className="form-control" type="number" min="0" step="0.01" placeholder={location.state.card.price != null ? `Provider lists at $${location.state.card.price}` : "Your offer"} value={offer} onChange={(event) => setOffer(event.target.value)} required />
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="form-group">
+                                    <label>Urgency</label>
+                                    <select className="form-control" value={urgency} onChange={(event) => setUrgency(event.target.value)}>
+                                        <option value="">Select urgency...</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label>Preferred Contact Info</label>
+                            <input className="form-control" placeholder="Email, phone, etc." value={contact} onChange={(event) => setContact(event.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>End Date</label>
+                            <input type="date" className="form-control" value={endDate} onChange={(event) => setEndDate(event.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Project Details</label>
+                            <textarea className="form-control" rows="5" placeholder="Describe what you need..." value={directions} onChange={(event) => setDirections(event.target.value)} style={{ resize: 'vertical' }} />
+                        </div>
+                        <div className="d-flex mt-3">
+                            <button className="btn primary-button" type="submit" disabled={submitting}>
+                                {submitting ? "Submitting..." : "Submit Request"}
+                            </button>
+                            <Link className="btn secondary-button ml-3" to="/explore">Cancel</Link>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </Account>
+            <Footer />
+        </>
     )
 }
 
